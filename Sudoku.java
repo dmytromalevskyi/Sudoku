@@ -1,10 +1,10 @@
 import java.lang.Math;
-import java.util.Scanner;  
+import java.util.Scanner;
 
 
 class Sudoku{
     public static void main(String[] args) {
-        byte[][] board = Board.generate2DArrays(3);
+        byte[][] board = Board.generate2DArrays(2);
         Board.draw(board);
       
         board = Board.solveSudoku(board);
@@ -24,7 +24,7 @@ class Board{
         // For testing only
         for (int i = 0; i <= array2D.length-1; i++){
             for (int j = 0; j <= array2D.length-1; j++){
-                array2D[i][j] = (byte) 1;
+                array2D[i][j] = (byte) 0;
             }
         }
 
@@ -36,6 +36,8 @@ class Board{
     public static void draw(byte[][] board) {
         int dimention = board.length;
         int level = (int) Math.sqrt(board.length);
+        String empty = createRepeatedUnit(dimention, " ");
+
         System.out.println("dimention: "+dimention);
         System.out.println("level: "+level);
         
@@ -48,13 +50,28 @@ class Board{
         for (int i = 0; i <= dimention-1; i++){
             System.out.print("┃ ");
             for (int z = 0; z <= dimention-1; z++){
-                if (z == dimention-1)
-                    System.out.print(board[i][z]+" ┃\n");
+                if (z == dimention-1){
+                    // If the byte is 0 print " "
+                    if (board[i][z] != 0)
+                        System.out.print(board[i][z]);
+                    else
+                        System.out.print(empty);
+                    System.out.print(" ┃\n");
+                }
                 else if (z % level == 0 & z != 0){
-                    System.out.print("┃ "+ board[i][z]);
+                    System.out.print("┃ ");
+                    // If the byte is 0 print " "
+                    if (board[i][z] != 0)
+                        System.out.print(board[i][z]);
+                    else
+                        System.out.print(empty);
                     System.out.print(" ");
                 } else {
-                    System.out.print(board[i][z]);
+                    // If the byte is 0 print " "
+                    if (board[i][z] != 0)
+                        System.out.print(board[i][z]);
+                    else
+                        System.out.print(empty);
                     System.out.print(" ");
                 }
             }
@@ -255,5 +272,24 @@ class Board{
         }
 
         return uncommonElements;
+    }
+
+    // Return a string with appropriate number of space
+    //
+    public static String createRepeatedUnit(int dimention, String unit) {
+        String unitInstance = unit;
+        byte widthOfCharacters = 0;
+        
+        while (dimention > 0) {
+            dimention /= 10;
+            widthOfCharacters++;
+          }
+
+        for (byte i = 1; i <= widthOfCharacters-1; i++){
+            unit = unit+unitInstance;
+        }
+        System.out.println("The number of digits is: "+widthOfCharacters);
+        System.out.println("\""+unit+"\"");
+        return unit;
     }
 }
