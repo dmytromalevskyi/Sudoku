@@ -6,14 +6,92 @@ import java.util.Arrays;
 class Sudoku{
     public static void main(String[] args) {
         printLogo();
+        menu();
+
+        /*
+        // For board generation fixes
         int level = 2;
         byte[][] board = Board.generate2DArrays(level);
         //Board.draw(board);
         
         board = Board.solveSudoku(board);
         Board.draw(board);
-
+        */
         
+    }
+
+
+    // Main play function
+    //
+    public static void playSudoku () {
+        boolean isGameFinished = false;
+        
+        int level = 0;
+        boolean userMadeChoice = false;
+        while (!userMadeChoice){
+            System.out.println("Choose what level you want to play.\n");
+            System.out.println("'1' for 1*1 board");
+            System.out.println("'2' for 4*4 board");
+            System.out.println("'3' for 9*9 board");
+            System.out.println("'n' for (n^2)*(n^2) board");
+            String userChoice = inputString("Enter your choice below: ");
+            System.out.println();
+            switch (userChoice){
+                case "1":
+                    level = 1;
+                    userMadeChoice = true;
+                    break;
+                case "2":
+                    level = 2;
+                    userMadeChoice = true;
+                    break;
+                case "3":
+                    level = 3;
+                    userMadeChoice = true;
+                    break;
+                default:
+                    System.out.println("Sorry, you have either entered invalid option or the level you are trying to access in still in development.");
+                    System.out.println("Please try again. \n");
+            }
+        } 
+
+        int difficulty = 0;
+        userMadeChoice = false;
+        while (!userMadeChoice){
+            System.out.println("Choose what difficulty you want to play.\n");
+            System.out.println("'1' There are barely any numbers missing.");
+            System.out.println("'2' There are some numbers missing.");
+            System.out.println("'3' Now we are talking!");
+            String userChoice = inputString("Enter your choice below: ");
+            System.out.println();
+            switch (userChoice){
+                case "1":
+                    difficulty = 1;
+                    userMadeChoice = true;
+                    break;
+                case "2":
+                    difficulty = 2;
+                    userMadeChoice = true;
+                    break;
+                case "3":
+                    difficulty = 3;
+                    userMadeChoice = true;
+                    break;
+                default:
+                    System.out.println("Sorry, you have entered an invalid option.");
+                    System.out.println("Please try again. \n");
+            }
+        } 
+
+        byte[][] board = Board.generate2DArrays(level); 
+        board = Board.solveSudoku(board);
+        board = Board.cratePlayableSudoku(board, difficulty);
+        Board.draw(board);
+
+        while(!isGameFinished){
+            Board.updateBoard(board);
+        }
+        menu();
     }
 
     // Print a cool Sudoku logo
@@ -37,6 +115,50 @@ class Sudoku{
         System.out.println();
                                                                                        
     }
+
+    // Menu that the user is greeted with
+    //
+    public static void menu (){
+        boolean userMadeChoice = false;
+        
+        while (!userMadeChoice){
+            System.out.println("Choose what mode you want to play.\n");
+            System.out.println("'1' for Play Sudoku");
+            System.out.println("'2' for Other Options");
+            System.out.println("'0' for Exit");
+            String userChoice = inputString("Enter your choice below: ");
+            System.out.println();
+            switch (userChoice){
+                case "1":
+                    System.out.println("Loading options...\n");
+                    playSudoku();
+                    userMadeChoice = true;
+                    break;
+                case "2":
+                    System.out.println("Sorry, that is still in development...\n");
+                    break;
+                case "0":
+                    System.out.println("Good bye! Till next time!\n");
+                    userMadeChoice = true;
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Ops... I didn't get that. Let's try again.\n");
+            }
+        }    
+    }
+
+    // Return user input as a string after print a message
+    //
+    public static String inputString (String message){
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println(message);
+
+        String userInput = scanner.nextLine();
+        return userInput;
+
+    }// END inputString
 }
 
 class Board{
@@ -73,7 +195,7 @@ class Board{
 
         System.out.println(topBorder);
         for (int i = 0; i <= dimention-1; i++){
-            System.out.print("┃ ");
+            System.out.print((i+1)+" ┃ ");
             for (int z = 0; z <= dimention-1; z++){
                 if (z == dimention-1){
                     // If the byte is 0 print " "
@@ -116,6 +238,62 @@ class Board{
             board = Board.gererateRandomValues(board);
         }
 
+        return board;
+    }
+
+    // Remove a number of values based on the difficulty a user wants from the board
+    //
+    public static byte[][] cratePlayableSudoku(byte[][] board, int difficulty) {
+        int dimention = board.length;
+        int numbersToDelete = (int) Math.ceil( (dimention*dimention) * (difficulty*0.25) );
+        System.out.println("Number of empty spaces: "+(dimention*dimention - numbersToDelete));
+        byte[] coordinatesX = new byte[numbersToDelete];
+        byte[] coordinatesY = new byte[numbersToDelete];
+
+        // Make all values of the 2 arrays -1
+        for (int i = 0; i <= numbersToDelete-1; i++) {
+            coordinatesX[i] = -1;
+            coordinatesY[i] = -1;
+        }
+
+        // Generate random coordinates numbersToDelete and make sure that they are all distinct
+        for (int i = 0; i <= numbersToDelete-1; i++) {
+            boolean addedNumber = false;
+            while (!addedNumber){
+                byte randomX = getRandomNumber((byte) 0, (byte) (dimention-1));
+                byte randomY = getRandomNumber((byte) 0, (byte) (dimention-1));
+                if (!Board.isPairPresent(coordinatesX, coordinatesY, randomX, randomY)){
+                    coordinatesX[i] = randomX;
+                    coordinatesY[i] = randomY;
+                    addedNumber = true;
+                }
+            }
+        }
+
+        // Clear the coordinates
+        for (int i = 0; i <= numbersToDelete-1; i++){
+            board[coordinatesX[i]][coordinatesY[i]] = 0;
+        }
+
+
+        return board;
+    }
+
+    // Ask the user to change the values and return updated the board
+    // add byte[] unchengableX, byte[] unchengableY to make sure that generated numbers are not changed
+    public static byte[][] updateBoard(byte[][] board) {
+        System.out.println("Enter where you want to insert a number.");
+        int coordinateX = Integer.parseInt(Sudoku.inputString("What row?"));
+        int coordinateY = Integer.parseInt(Sudoku.inputString("What coloumn?"));
+
+        // implement input verification
+        // no strings
+        // no coordinates of numbers that were generated
+        byte userInsertion = (byte) Integer.parseInt(Sudoku.inputString("What number do you want to insert at ("+coordinateX+","+coordinateY+"):"));
+
+        board[coordinateX-1][coordinateY-1] = userInsertion;
+
+        draw(board);
         return board;
     }
 
@@ -269,7 +447,16 @@ class Board{
     // Generate top border for n level
     //
     public static String generateTopBorder(int level) {
-        String topBorder = "┏";
+        int dimention = level * level;
+        String topBorder = "    ";
+        for (int i = 1; i <= dimention; i++){
+            if (i % (level) == 0)
+                topBorder = topBorder + i + "   ";
+            else
+                topBorder = topBorder + i + " ";
+        }
+
+        topBorder = topBorder + "\n  ┏";
         for (int i = 1; i <= level; i++){
             if (i == level){
                 for (int z = 1; z <= level*2+1; z++){
@@ -289,7 +476,7 @@ class Board{
     // Generate seperator line for n level board
     //
     public static String generateSeperatorBorder(int level) {
-        String seperatorBorder = "┣";
+        String seperatorBorder = "  ┣";
         for (int i = 1; i <= level; i++){
             if (i == level){
                 for (int z = 1; z <= level*2+1; z++){
@@ -309,7 +496,7 @@ class Board{
     // Generate bottom border for n level
     //
     public static String generateBottomBorder(int level) {
-        String bottomBorder = "┗";
+        String bottomBorder = "  ┗";
         for (int i = 1; i <= level; i++){
             if (i == level){
                 for (int z = 1; z <= level*2+1; z++){
@@ -377,7 +564,7 @@ class Board{
         return isFound;
     }
 
-    // Cheack if 2 2D byte arrays are equal
+    // Check if 2 2D byte arrays are equal
     //
     public static boolean are2DByteArraysEqual(byte[][] first, byte[][] second) {
         boolean areDistinct = true;
@@ -388,6 +575,18 @@ class Board{
             }
         }
         return areDistinct;
+    }
+
+    // Check if a particular pair of numbers exist in 2 byte arrays
+    //
+    public static boolean isPairPresent(byte[] firstA, byte[] secondA, byte firstB, byte secondB) {
+    boolean isPresent = false;
+    for (int i = 0; i <= firstA.length-1; i++){
+        if ((firstA[i] == firstB) & (secondA[i] == secondB))
+            isPresent = true;
+    }
+    
+    return isPresent;
     }
 
     // Return a string that will have the unit repeated the number of digits dimention contains 
