@@ -13,7 +13,7 @@ Features (in development)
 Examples of boards
 ------------------
 ### 9x9 difficulty - 3
-    1 2 3   4 5 6   7 8 9
+text    1 2 3   4 5 6   7 8 9
   ┏━━━━━━━┳━━━━━━━┳━━━━━━━┓
 1 ┃       ┃     8 ┃   9   ┃
 2 ┃ 6 4   ┃ 9     ┃       ┃
