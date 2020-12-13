@@ -1,4 +1,4 @@
-```java
+
     sSSs   .S       S.    .S_sSSs      sSSs_sSSs     .S    S.    .S       S.   
    d%%SP  .SS       SS.  .SS~YS%%b    d%%SP~YS%%b   .SS    SS.  .SS       SS.  
   d%S'    S%S       S%S  S%S   `S%b  d%S'     `S%b  S%S    S&S  S%S       S%S  
@@ -13,7 +13,6 @@
   YSS'      YSSP~YSSY    SSS~YSSY      YSSP~YSSY    S*S     SS    YSSP~YSSY    
                                                     SP                         
                                                     Y                          
-  ```
 The aim is to create sudoku where a user will have a choice to generate any board size (4x4, 16x16 and n^2 x n^2) and difficulty (number of empty squares).
 
 Features (in development)
