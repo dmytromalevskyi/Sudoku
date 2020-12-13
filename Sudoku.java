@@ -5,9 +5,9 @@ import java.util.Arrays;
 
 class Sudoku{
     public static void main(String[] args) {
-        //printLogo();
-        //menu();
-
+        printLogo();
+        menu();
+        /*
         // For board generation fixes
         int level = 4;
         byte[][] board = Board.generate2DArrays(level);
@@ -15,7 +15,7 @@ class Sudoku{
         
         board = Board.solveSudoku(board);
         Board.draw(board);        
-        
+        */
     }
 
 
@@ -45,6 +45,10 @@ class Sudoku{
                     break;
                 case "3":
                     level = 3;
+                    userMadeChoice = true;
+                    break;
+                case "4":
+                    level = 4;
                     userMadeChoice = true;
                     break;
                 default:
@@ -181,24 +185,25 @@ class Board{
     public static void draw(byte[][] board) {
         int dimention = board.length;
         int level = (int) Math.sqrt(board.length);
-        String empty = createRepeatedUnit(dimention, " ");
+        int digits = countDigits(dimention);
+        String empty = createRepeatedUnit(digits, " ");
 
         System.out.println("dimention: "+dimention);
         System.out.println("level: "+level);
         
         // Generate borders
-        String topBorder = generateTopBorder(level);
-        String bottomBorder = generateBottomBorder(level);
-        String seperatorBorder = generateSeperatorBorder(level);
+        String topBorder = generateTopBorder(level, digits);
+        String bottomBorder = generateBottomBorder(level, digits);
+        String seperatorBorder = generateSeperatorBorder(level, digits);
 
         System.out.println(topBorder);
         for (int i = 0; i <= dimention-1; i++){
-            System.out.print((i+1)+" ┃ ");
+            System.out.print((i+1) + createRepeatedUnit( (digits-countDigits(i+1)) , " ") + " ┃ ");
             for (int z = 0; z <= dimention-1; z++){
                 if (z == dimention-1){
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                        System.out.print(board[i][z]);
+                    System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
                     else
                         System.out.print(empty);
                     System.out.print(" ┃\n");
@@ -207,14 +212,14 @@ class Board{
                     System.out.print("┃ ");
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                        System.out.print(board[i][z]);
+                        System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
                     else
                         System.out.print(empty);
                     System.out.print(" ");
                 } else {
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                        System.out.print(board[i][z]);
+                        System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
                     else
                         System.out.print(empty);
                     System.out.print(" ");
@@ -601,6 +606,19 @@ class Board{
         return board;
     }
 
+    // Count number of digits
+    //
+    public static int countDigits(int num) {
+        int count = 0;
+
+        while(num != 0){
+            num = num/10;
+            count++;
+        }
+        
+        return count;
+    }
+
     // Cheak if a box has distinct elements
     // coloumn and row indexing the top left corner of the box
     //
@@ -678,25 +696,25 @@ class Board{
     
     // Generate top border for n level
     //
-    public static String generateTopBorder(int level) {
+    public static String generateTopBorder(int level, int digits) {
         int dimention = level * level;
-        String topBorder = "    ";
+        String topBorder = createRepeatedUnit(digits+3, " ");
         for (int i = 1; i <= dimention; i++){
             if (i % (level) == 0)
-                topBorder = topBorder + i + "   ";
+                topBorder = topBorder + i + createRepeatedUnit( (digits-countDigits(i)) , " ") + "   ";
             else
-                topBorder = topBorder + i + " ";
+                topBorder = topBorder + i + createRepeatedUnit( (digits-countDigits(i)) , " ") +" ";
         }
 
-        topBorder = topBorder + "\n  ┏";
+        topBorder = topBorder + "\n" + createRepeatedUnit(digits+1, " ") + "┏";
         for (int i = 1; i <= level; i++){
             if (i == level){
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     topBorder = topBorder + "━";
                 }
                 topBorder = topBorder + "┓";
             } else {
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     topBorder = topBorder + "━";
                 }
                 topBorder = topBorder + "┳";
@@ -707,16 +725,16 @@ class Board{
     
     // Generate seperator line for n level board
     //
-    public static String generateSeperatorBorder(int level) {
-        String seperatorBorder = "  ┣";
+    public static String generateSeperatorBorder(int level, int digits) {
+        String seperatorBorder = createRepeatedUnit(digits+1 , " ") + "┣";
         for (int i = 1; i <= level; i++){
             if (i == level){
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     seperatorBorder = seperatorBorder + "━";
                 }
                 seperatorBorder = seperatorBorder + "┫";
             } else {
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     seperatorBorder = seperatorBorder + "━";
                 }
                 seperatorBorder = seperatorBorder + "╋";
@@ -727,16 +745,16 @@ class Board{
 
     // Generate bottom border for n level
     //
-    public static String generateBottomBorder(int level) {
-        String bottomBorder = "  ┗";
+    public static String generateBottomBorder(int level, int digits) {
+        String bottomBorder = createRepeatedUnit(digits+1 , " ") + "┗";
         for (int i = 1; i <= level; i++){
             if (i == level){
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     bottomBorder = bottomBorder + "━";
                 }
                 bottomBorder = bottomBorder + "┛";
             } else {
-                for (int z = 1; z <= level*2+1; z++){
+                for (int z = 1; z <= ((level*digits)+level+1); z++){
                     bottomBorder = bottomBorder + "━";
                 }
                 bottomBorder = bottomBorder + "┻";
@@ -857,22 +875,16 @@ class Board{
 
     // Return a string that will have the unit repeated the number of digits dimention contains 
     //
-    public static String createRepeatedUnit(int dimention, String unit) {
+    public static String createRepeatedUnit(int digits, String unit) {
         String unitInstance = unit;
-        byte widthOfCharacters = 0;
         
-        while (dimention > 0) {
-            dimention /= 10;
-            widthOfCharacters++;
-          }
-
-        for (byte i = 1; i <= widthOfCharacters-1; i++){
+        if (digits == 0)
+            return "";
+    
+        for (byte i = 1; i <= digits-1; i++){
             unit = unit+unitInstance;
         }
-        /*
-        System.out.println("The number of digits is: "+widthOfCharacters);
-        System.out.println("\""+unit+"\"");
-        */
+        
         return unit;
     }
 }
