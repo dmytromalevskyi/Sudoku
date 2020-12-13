@@ -1,6 +1,6 @@
 Sudoku
 ======
-The aim is to create sudoku where a user will have a choice to generate any board size (4x4, 10 x 10 and n^2 x n^2) and difficulty (number of empty squares).
+The aim is to create sudoku where a user will have a choice to generate any board size (4x4, 16x16 and n^2 x n^2) and difficulty (number of empty squares).
 
 Features (in development)
 -------------------------
