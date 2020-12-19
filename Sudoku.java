@@ -1,6 +1,8 @@
 import java.lang.Math;
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List; 
 
 
 class Sudoku{
@@ -9,7 +11,7 @@ class Sudoku{
         menu();
         /*
         // For board generation fixes
-        int level = 4;
+        int level = 6;
         byte[][] board = Board.generate2DArrays(level);
         Board.draw(board);
         
@@ -85,13 +87,19 @@ class Sudoku{
             }
         } 
 
-        byte[][] board = Board.generate2DArrays(level); 
+        byte[][] board = Board.generate2DArrays(level);
         board = Board.solveSudoku(board);
         board = Board.cratePlayableSudoku(board, difficulty);
-        Board.draw(board);
+        byte[][] fixedCoordinates = Board.getNonZerosCoordinates(board);
+        
+        for (byte[] bs : fixedCoordinates) {
+            System.out.println(bs[0] + ", " + bs[1]);
+        }
+        
+        Board.draw(board, fixedCoordinates);
 
         while(!isGameFinished){
-            Board.updateBoard(board);
+            Board.updateBoard(board, fixedCoordinates);
         }
         menu();
     }
@@ -182,7 +190,7 @@ class Board{
 
     // Draw a board of any square dimention
     //
-    public static void draw(byte[][] board) {
+    public static void draw(byte[][] board, byte[][] fixedCoordinates) {
         int dimention = board.length;
         int level = (int) Math.sqrt(board.length);
         int digits = countDigits(dimention);
@@ -306,12 +314,45 @@ class Board{
         return board;
     }
 
+    // Return a list of coordinates that are not 0's
+    //
+    public static byte[][] getNonZerosCoordinates(byte[][] board) {
+        ArrayList<byte[]> listOfCoordinates = new ArrayList<byte[]>();
+        
+        for (byte x = 0; x <= board.length-1; x++){
+            for (byte y = 0; y <= board.length-1; y++){
+                if (board[x][y] != 0){
+                    byte[] setOfCoordinates = new byte[2];
+                    setOfCoordinates[0] = x;
+                    setOfCoordinates[1] = y;
+                    listOfCoordinates.add(setOfCoordinates);
+                }
+            }
+        }
+
+        // Converting to byte[][]
+        byte[][] arrayOfCoordinates = new byte[listOfCoordinates.size()][2];
+        arrayOfCoordinates = listOfCoordinates.toArray(arrayOfCoordinates);
+
+        return arrayOfCoordinates;
+    }
+
     // Ask the user to change the values and return updated the board
     // add byte[] unchengableX, byte[] unchengableY to make sure that generated numbers are not changed
-    public static byte[][] updateBoard(byte[][] board) {
+    public static byte[][] updateBoard(byte[][] board, byte[][] fixedCoordinates) {
         System.out.println("Enter where you want to insert a number.");
         int coordinateX = Integer.parseInt(Sudoku.inputString("What row?"));
         int coordinateY = Integer.parseInt(Sudoku.inputString("What coloumn?"));
+
+        // Cheking if the user has chosen a not fixed coordinate
+        byte[] userCoordinates = new byte[2];
+        userCoordinates[0] = (byte) (coordinateX-1);
+        userCoordinates[1] = (byte) (coordinateY-1);
+        if ( isArrayPresentIn2DArray(userCoordinates, fixedCoordinates) ){
+            System.out.println("You cannot change the number at this coordinate: "+coordinateX+","+coordinateY+"\n");
+            return Board.updateBoard(board, fixedCoordinates);
+        }
+
 
         // implement input verification
         // no strings
@@ -319,199 +360,11 @@ class Board{
         byte userInsertion = (byte) Integer.parseInt(Sudoku.inputString("What number do you want to insert at ("+coordinateX+","+coordinateY+"):"));
 
         board[coordinateX-1][coordinateY-1] = userInsertion;
-
-        draw(board);
+        
+        draw(board, fixedCoordinates);
         return board;
     }
 
-    // Return a solved 2D array with the size of the passed one
-    //
-    public static byte[][] generateRandomValues(byte[][] board) {
-        int dimention = board.length;
-        int level = (int) Math.sqrt(board.length);
-
-        // Sometimes there will be no byte that can pe places in the next squere (due to the method used) so everything should start all over again
-        boolean invalidSudoku = false;
-        
-        int x = 0;
-        while (x <= dimention-1){
-            int boxX = (int) Math.floor(x / level) * level;
-
-            int y = 0;
-            while (y <= dimention-1){
-                int boxY = (int) Math.floor(y / level) * level;
-
-                boolean foundNumber = false;
-                byte[] currentRow = board[x];
-                byte[] currentColoumn = getColoumnAsArray(board, y);
-                byte[] currentBox = getBoxAsArray(board, boxX, boxY);
-
-                /*
-                System.out.println("Current x,y: "+x+","+y);
-                System.out.println("Current boxX,boxY: "+boxX+","+boxY);
-                System.out.println("Current Box");
-                for (byte num : currentBox){
-                    System.out.println(num);
-                }
-                System.out.println("End of Current Box");
-                draw(board);
-                System.out.println();
-                */
-
-
-                int count = 0;
-                while (!foundNumber){
-                    byte randomNumber = getRandomNumber((byte) 1,(byte) dimention);
-                    if ( !isInArray(currentRow, randomNumber) & !isInArray(currentColoumn, randomNumber) & !isInArray(currentBox, randomNumber) ){
-                        board[x][y] = randomNumber;
-                        foundNumber = true;
-                    } else if (invalidSudoku){
-                        break;
-                    } else{
-                        count++;
-                        invalidSudoku = (count >= dimention*2) ? true : false;
-                    }
-
-                }
-                y++;
-                if (invalidSudoku)
-                    break;
-            }
-            x++;
-            if (invalidSudoku)
-                    break;
-        }
-        
-        if (invalidSudoku){
-            return generate2DArrays(level);
-        }
-
-        return board;
-    }
-
-    // New way to generate a random board of a given size
-    //
-    public static byte[][] generateSquaresSequentially(byte[][] board) {
-        int dimention = board.length;
-        int level = (int) Math.sqrt(board.length);
-        
-        // Counts what box is being generated
-        int boxOnRow = 0;
-        int boxOnColoumn = 0;
-
-        while ( (boxOnRow <= (dimention - level)) & (boxOnColoumn <= (dimention - level)) ){
-            for (int x = boxOnRow; x <= boxOnRow+level-1; x++){
-
-                for (int y = boxOnColoumn; y <= boxOnColoumn+level-1; y++){
-                    
-                    System.out.println("Current x,y: "+x+","+y);
-                    System.out.println("Current boxX,boxY: "+boxOnRow+","+boxOnColoumn);
-                    System.out.println("Current Box");
-                    /*
-                    for (byte num : currentBox){
-                        System.out.print(num+", ");
-                    }
-                    */
-                    System.out.println("End of Current Box");
-                    draw(board);
-                    System.out.println();
-                    
-
-                    board =  fillInBoard(board);
-
-                }
-            }
-            
-            // Increment boxOnRow and boxOnColoumn
-            if (boxOnColoumn == (dimention-level) ){
-                boxOnColoumn = 0;
-                boxOnRow += level;
-            }else{
-                boxOnColoumn += level;
-            }
-
-        }     
-        return board;
-    }
-
-    // Fills in a given box in a sudoku board cheking every single squere
-    //
-    public static byte[][] fillInBox(byte[][] board, int boxOnRow, int boxOnColoumn) {
-        // Terminate recursion if all values are filled in (not 0's)
-        byte[] boxArray = getBoxAsArray(board, boxOnRow, boxOnColoumn);
-        if (!isInArray(boxArray, (byte) 0 ))
-            return board;
-
-        // If the recursion is still going
-        int level = (int) Math.sqrt(board.length);
-        
-        // Generate the list of bytes that are from 1 to dimention
-        byte[] possibleNumbers = new byte[board.length];
-        for (byte i = 1; i <= board.length; i++){
-            possibleNumbers[i-1] = i;
-        }
-        
-        // Create 2D array so that each array represents a list of numbers that a particular square can be
-        byte[][] listOfPossibleNumbers = new byte[board.length][];
-        int index = 0;
-        for (int x = boxOnRow; x <= boxOnRow+level-1; x++){
-            for (int y = boxOnColoumn; y <= boxOnColoumn+level-1; y++){
-                byte currentNumber = board[x][y];
-                byte[] currentRow = board[x];
-                byte[] currentColoumn = getColoumnAsArray(board, y);
-
-                // If the number in the list is not zero, it means that it has already been given a value
-                if (currentNumber != 0){
-                    listOfPossibleNumbers[index] = new byte[0];
-                }else{
-                    listOfPossibleNumbers[index] = new byte[board.length];
-                    // Check what values the square can be
-                    for (byte i = 0; i <= possibleNumbers.length-1; i++){
-                        byte possibleNumber = possibleNumbers[i];
-                        if (!isInArray(currentRow, possibleNumber) & !isInArray(currentColoumn, possibleNumber) & !isInArray(boxArray, possibleNumber) ){
-                            listOfPossibleNumbers[index][i] = possibleNumber;
-                        }
-                    } 
-                }
-
-                index++;
-            }
-        }           
-        
-        // Testing the top code above
-        for (int x = 0; x <= listOfPossibleNumbers.length-1; x++){
-            System.out.print("X = "+x+" and Y's are: ");
-            byte[] currentWorkingList = listOfPossibleNumbers[x];
-
-            for (int y = 0; y <= currentWorkingList.length-1; y++){
-                System.out.print(currentWorkingList[y]+", ");
-            }
-            System.out.println();
-        }
-
-        // Compare the lists here and choose the one that (list.length > 0 and (has the most 0's) )
-        // and fill in a random number from it to the coresponding square in the board
-        int indexOfMostZeros = getIndexOfMostZeros(listOfPossibleNumbers);
-        // Find x and y coordinates that correspond to indexOfMostZeros
-        int x = boxOnRow + (int) Math.floor(indexOfMostZeros / level);
-        int y = boxOnColoumn + indexOfMostZeros - (((int) Math.floor(indexOfMostZeros / level)) * level);
-        System.out.println("indexOfMostZeros: "+indexOfMostZeros+ " x: "+x+" y: "+y);
-        System.out.println("fillInBox below on boxOnRow, boxOnColoumn: "+boxOnRow+", "+boxOnColoumn);
-
-        for (int i = 0; i <= listOfPossibleNumbers[indexOfMostZeros].length-1; i++){
-            byte numberInArray = listOfPossibleNumbers[indexOfMostZeros][i];
-            if ( numberInArray != 0){
-                board[x][y] = numberInArray;
-                break;
-            }
-        }
-        
-        
-        
-        draw(board);
-        Sudoku.inputString("");
-        return fillInBox(board, boxOnRow, boxOnColoumn);
-    }
 
     // Fills in a given box in a sudoku board cheking every single squere
     //
@@ -606,7 +459,7 @@ class Board{
         return board;
     }
 
-    // Count number of digits
+    // Count number of digits in a number
     //
     public static int countDigits(int num) {
         int count = 0;
@@ -872,6 +725,27 @@ class Board{
     
     return isPresent;
     }
+
+    // Check if an array is present in a 2D array
+     public static boolean isArrayPresentIn2DArray(byte[] byteArray, byte[][] array2d) {
+        boolean isPresent = false;
+        int lengthOfByteArray = byteArray.length;
+        for (int i = 0; i <= array2d.length-1; i++){
+            if (lengthOfByteArray != array2d[i].length)
+                continue;
+            
+            for (int j = 0; j <= array2d[i].length-1; j++){
+                if (byteArray[j] != array2d[i][j])
+                    break;
+
+                if ((j == array2d[i].length-1) & (byteArray[j] == array2d[i][j]))
+                    isPresent = true;
+
+            }
+        }
+
+        return isPresent;
+     }
 
     // Return a string that will have the unit repeated the number of digits dimention contains 
     //
