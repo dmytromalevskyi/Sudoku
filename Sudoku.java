@@ -2,8 +2,6 @@ import java.lang.Math;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List; 
-
 
 class Sudoku{
     public static void main(String[] args) {
@@ -11,12 +9,13 @@ class Sudoku{
         menu();
         /*
         // For board generation fixes
-        int level = 6;
+        int level = 4;
         byte[][] board = Board.generate2DArrays(level);
-        Board.draw(board);
+        byte[][] empyForDrawFun = new byte[level*level][level*level];
+        Board.draw(board,empyForDrawFun);
         
         board = Board.solveSudoku(board);
-        Board.draw(board);        
+        Board.draw(board, empyForDrawFun);        
         */
     }
 
@@ -91,16 +90,14 @@ class Sudoku{
         board = Board.solveSudoku(board);
         board = Board.cratePlayableSudoku(board, difficulty);
         byte[][] fixedCoordinates = Board.getNonZerosCoordinates(board);
-        
-        for (byte[] bs : fixedCoordinates) {
-            System.out.println(bs[0] + ", " + bs[1]);
-        }
-        
         Board.draw(board, fixedCoordinates);
 
         while(!isGameFinished){
             Board.updateBoard(board, fixedCoordinates);
+            isGameFinished = !Board.isZeroIn2DArray(board);
         }
+
+        System.out.println("\n Board complete! \n");
         menu();
     }
 
@@ -163,7 +160,7 @@ class Sudoku{
     public static String inputString (String message){
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println(message);
+        System.out.print(message);
 
         String userInput = scanner.nextLine();
         return userInput;
@@ -194,7 +191,12 @@ class Board{
         int dimention = board.length;
         int level = (int) Math.sqrt(board.length);
         int digits = countDigits(dimention);
+        byte[] currentCoordinate = new byte[2];
         String empty = createRepeatedUnit(digits, " ");
+
+        // Colour strings
+        String reset = "\u001b[0m";
+        String redFG = "\u001b[31m";
 
         System.out.println("dimention: "+dimention);
         System.out.println("level: "+level);
@@ -208,10 +210,18 @@ class Board{
         for (int i = 0; i <= dimention-1; i++){
             System.out.print((i+1) + createRepeatedUnit( (digits-countDigits(i+1)) , " ") + " ┃ ");
             for (int z = 0; z <= dimention-1; z++){
+                
+                currentCoordinate[0] = (byte) i;
+                currentCoordinate[1] = (byte) z;
+                
+                String lookChange = reset;
+                if (isArrayPresentIn2DArray(currentCoordinate, fixedCoordinates))
+                    lookChange = redFG;
+                
                 if (z == dimention-1){
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                    System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        System.out.print(lookChange + board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " ") + reset);
                     else
                         System.out.print(empty);
                     System.out.print(" ┃\n");
@@ -220,14 +230,14 @@ class Board{
                     System.out.print("┃ ");
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                        System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        System.out.print(lookChange + board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " ") + reset);
                     else
                         System.out.print(empty);
                     System.out.print(" ");
                 } else {
                     // If the byte is 0 print " "
                     if (board[i][z] != 0)
-                        System.out.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        System.out.print(lookChange + board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " ") + reset);
                     else
                         System.out.print(empty);
                     System.out.print(" ");
@@ -249,12 +259,7 @@ class Board{
             try{
                 board = fillInBoard(board);
                 boardContainsZeros = false;
-                for (byte[] byteArray : board) {
-                    if (isInArray(byteArray, (byte) 0 )){
-                        boardContainsZeros = true;
-                        break;
-                    }                
-                }
+                boardContainsZeros = isZeroIn2DArray(board);
             } catch (ArrayIndexOutOfBoundsException e){
                 System.out.println("Board generation has failed. Generating a new one...");
                 int level = (int) Math.sqrt(board.length);
@@ -263,16 +268,6 @@ class Board{
             }
         }while (boardContainsZeros);         
         
-        /*
-        double count = 0;
-        while(Board.are2DByteArraysEqual(Board.generate2DArrays(level), board)){
-            // Uncomment the line below to get the tested method of generating
-            //board = Board.gererateRandomValues(board);
-            board = Board.generateSquaresSequentially(board);
-            count++;
-        }
-        System.out.println("The board was generated "+count+" times.");
-        */
         return board;
     }
 
@@ -340,27 +335,42 @@ class Board{
     // Ask the user to change the values and return updated the board
     // add byte[] unchengableX, byte[] unchengableY to make sure that generated numbers are not changed
     public static byte[][] updateBoard(byte[][] board, byte[][] fixedCoordinates) {
-        System.out.println("Enter where you want to insert a number.");
-        int coordinateX = Integer.parseInt(Sudoku.inputString("What row?"));
-        int coordinateY = Integer.parseInt(Sudoku.inputString("What coloumn?"));
+        int level = (int) Math.sqrt(board.length);
 
-        // Cheking if the user has chosen a not fixed coordinate
+        System.out.println("Enter where you want to insert a number.");
+        int coordinateX = Integer.parseInt(Sudoku.inputString("Row: "));
+        int coordinateY = Integer.parseInt(Sudoku.inputString("Column: "));
+
+        // Checking if the user has chosen a not fixed coordinate
         byte[] userCoordinates = new byte[2];
         userCoordinates[0] = (byte) (coordinateX-1);
         userCoordinates[1] = (byte) (coordinateY-1);
         if ( isArrayPresentIn2DArray(userCoordinates, fixedCoordinates) ){
-            System.out.println("You cannot change the number at this coordinate: "+coordinateX+","+coordinateY+"\n");
+            System.out.println("You cannot change the number at ("+coordinateX+","+coordinateY+")\n");
             return Board.updateBoard(board, fixedCoordinates);
         }
 
 
         // implement input verification
         // no strings
-        // no coordinates of numbers that were generated
-        byte userInsertion = (byte) Integer.parseInt(Sudoku.inputString("What number do you want to insert at ("+coordinateX+","+coordinateY+"):"));
+        byte userInsertion = (byte) Integer.parseInt(Sudoku.inputString("What number do you want to insert at ("+coordinateX+","+coordinateY+"): "));
+        System.out.println();
 
-        board[coordinateX-1][coordinateY-1] = userInsertion;
-        
+        // Checking if no such number in row, column and box
+        if ( isInArray(board[coordinateX-1], userInsertion)){
+            System.out.println("There is a "+userInsertion+" already in the same row.\n");
+            return Board.updateBoard(board, fixedCoordinates);
+        } else if ( isInArray(getColoumnAsArray(board, coordinateY-1), userInsertion)){
+            System.out.println("There is a "+userInsertion+" already in the same column.\n");
+            return Board.updateBoard(board, fixedCoordinates);
+        } else if ( isInArray(getBoxAsArray(board, coordinateX - 1 - ((coordinateX-1) % level), coordinateY - 1 - ((coordinateY-1) % level)), userInsertion)){
+            System.out.println("There is a "+userInsertion+" already in the same box.\n");
+            return Board.updateBoard(board, fixedCoordinates);
+        }
+
+
+
+        board[coordinateX-1][coordinateY-1] = userInsertion;       
         draw(board, fixedCoordinates);
         return board;
     }
@@ -369,6 +379,12 @@ class Board{
     // Fills in a given box in a sudoku board cheking every single squere
     //
     public static byte[][] fillInBoard(byte[][] board) {
+        /*
+        //Testing
+        byte[][] empyForDrawFun = new byte[board.length*board.length][board.length*board.length];
+        Board.draw(board,empyForDrawFun);
+        */
+
         int dimention = board.length;
         int level = (int) Math.sqrt(dimention);
         
@@ -422,7 +438,7 @@ class Board{
         /*
         // Testing the top code above
         for (int x = 0; x <= listOfPossibleNumbers.length-1; x++){
-            System.out.print("X = "+x+" and Y's are: ");
+            System.out.print( ((int) (Math.floor(x / dimention)) + 1) +","+ (x - (int) (Math.floor(x / dimention) * dimention) + 1) +" possible numbers are: ");
             byte[] currentWorkingList = listOfPossibleNumbers[x];
 
             for (int y = 0; y <= currentWorkingList.length-1; y++){
@@ -454,7 +470,7 @@ class Board{
         //System.out.println("Number that is being written is: "+numberInArray);
         board[x][y] = numberInArray;
         
-        //draw(board);
+        //draw(board,empyForDrawFun);
         //Sudoku.inputString("");
         return board;
     }
@@ -760,5 +776,19 @@ class Board{
         }
         
         return unit;
+    }
+
+    // Check if a 2D array contains any zeros
+    //
+    public static boolean isZeroIn2DArray(byte[][] board) {
+        boolean boardContainsZeros = false;
+            for (byte[] byteArray : board) {
+                if (isInArray(byteArray, (byte) 0 )){
+                    boardContainsZeros = true;
+                    break;
+                }                
+            }
+        
+        return boardContainsZeros;
     }
 }
