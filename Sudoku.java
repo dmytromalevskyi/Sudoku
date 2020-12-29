@@ -360,7 +360,7 @@ class Board{
         if ( isInArray(board[coordinateX-1], userInsertion)){
             System.out.println("There is a "+userInsertion+" already in the same row.\n");
             return Board.updateBoard(board, fixedCoordinates);
-        } else if ( isInArray(getColoumnAsArray(board, coordinateY-1), userInsertion)){
+        } else if ( isInArray(getColumnAsArray(board, coordinateY-1), userInsertion)){
             System.out.println("There is a "+userInsertion+" already in the same column.\n");
             return Board.updateBoard(board, fixedCoordinates);
         } else if ( isInArray(getBoxAsArray(board, coordinateX - 1 - ((coordinateX-1) % level), coordinateY - 1 - ((coordinateY-1) % level)), userInsertion)){
@@ -398,25 +398,25 @@ class Board{
         byte[][] listOfPossibleNumbers = new byte[board.length * board.length][];
         int index = 0;
         int boxOnRow = 0;
-        int boxOnColoumn = 0;
+        int boxOnColumn = 0;
         for (int x = 0; x <= dimention-1; x++){
 
             for (int y = 0; y <= dimention-1; y++){
                 // Loop through the boxes
                 // Counts what box is being generated
                 boxOnRow = x - (x % level);
-                boxOnColoumn = y - (y % level);
+                boxOnColumn = y - (y % level);
 
                 /*
                 // Testing purpuses
                 System.out.println("Current x,y: "+x+","+y);
-                System.out.println("Current boxX,boxY: "+boxOnRow+","+boxOnColoumn);
+                System.out.println("Current boxX,boxY: "+boxOnRow+","+boxOnColumn);
                 System.out.println();
                 */
                 byte currentNumber = board[x][y];
                 byte[] currentRow = board[x];
-                byte[] currentColoumn = getColoumnAsArray(board, y);
-                byte[] boxArray = getBoxAsArray(board, boxOnRow, boxOnColoumn);
+                byte[] currentColumn = getColumnAsArray(board, y);
+                byte[] boxArray = getBoxAsArray(board, boxOnRow, boxOnColumn);
 
                 // If the number in the list is not zero, it means that it has already been given a value
                 if (currentNumber != 0){
@@ -426,7 +426,7 @@ class Board{
                     // Check what values the square can be
                     for (byte i = 0; i <= possibleNumbers.length-1; i++){
                         byte possibleNumber = possibleNumbers[i];
-                        if (!isInArray(currentRow, possibleNumber) & !isInArray(currentColoumn, possibleNumber) & !isInArray(boxArray, possibleNumber) ){
+                        if (!isInArray(currentRow, possibleNumber) & !isInArray(currentColumn, possibleNumber) & !isInArray(boxArray, possibleNumber) ){
                             listOfPossibleNumbers[index][i] = possibleNumber;
                         }
                     } 
@@ -456,7 +456,7 @@ class Board{
         int x = (int) Math.floor(indexOfMostZeros / dimention);
         int y = indexOfMostZeros - (x * dimention);
         //System.out.println("indexOfMostZeros: "+indexOfMostZeros+ " x: "+x+" y: "+y);
-        //System.out.println("fillInBox below on boxOnRow, boxOnColoumn: "+boxOnRow+", "+boxOnColoumn);
+        //System.out.println("fillInBox below on boxOnRow, boxOnColumn: "+boxOnRow+", "+boxOnColumn);
 
         // Get a random number of the list of possible numbers
         byte numberInArray = 0;
@@ -489,20 +489,20 @@ class Board{
     }
 
     // Cheak if a box has distinct elements
-    // coloumn and row indexing the top left corner of the box
+    // column and row indexing the top left corner of the box
     //
-    public static boolean isBoxDistinct(byte[][] board, int row, int coloumn){
-        byte[] byteArray = getBoxAsArray(board, row, coloumn);
+    public static boolean isBoxDistinct(byte[][] board, int row, int column){
+        byte[] byteArray = getBoxAsArray(board, row, column);
         return isByteArrayDistinct(byteArray);
     }
     
     // Cheak if a horizontal line has distinct elements
     //
-    public static boolean isColoumnDistinct(byte[][] board, int coloumn){
+    public static boolean isColumnDistinct(byte[][] board, int column){
         byte[] byteArray = new byte[board.length];
 
         for (int i = 0; i <= board.length-1; i++){
-            byteArray[i] = board[i][coloumn];
+            byteArray[i] = board[i][column];
         }
 
         return isByteArrayDistinct(byteArray);
@@ -536,26 +536,26 @@ class Board{
 
     // Returns a byte array of the items of a 2D byte array
     //
-    public static byte[] getColoumnAsArray(byte[][] board, int coloumn) {
-        byte [] coloumnArray = new byte[board.length];
+    public static byte[] getColumnAsArray(byte[][] board, int column) {
+        byte [] columnArray = new byte[board.length];
         
         for (int i = 0; i <= board.length-1; i++){
-            coloumnArray[i] = board[i][coloumn];
+            columnArray[i] = board[i][column];
         }
 
-        return coloumnArray;
+        return columnArray;
     }
 
     // Return the elements of the box in a single byte array
-    // coloumn and row indexing the top left corner of the box
+    // column and row indexing the top left corner of the box
     //
-    public static byte[] getBoxAsArray(byte[][] board, int row, int coloumn){
+    public static byte[] getBoxAsArray(byte[][] board, int row, int column){
         int level = (int) Math.sqrt(board.length);
         byte[] byteArray = new byte[board.length];
         int index = 0;
         
         for (int i = row; i <= row+level-1; i++){
-            for (int z = coloumn; z <= coloumn+level-1; z++){
+            for (int z = column; z <= column+level-1; z++){
                 byteArray[index] = board[i][z];
                 index++;
             }
