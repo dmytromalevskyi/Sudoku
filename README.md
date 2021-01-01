@@ -7,12 +7,12 @@ Features
 -------------------------
 * Solve randomly generated boards (4x4, 9x9, 16x16)
 * Be able to choose difficulty (1 - 25% of numbers are missing, 2 - 50% and 3 - 75%)
+* Generate a number of boards and save it to a txt file
 
 
 In development
 -------------------------
 * Generate boards of any size ((n^2)x(n^2) for 1 <= n <= 11)
-* Generate a number of boards and save it to a txt file
 * Generate a number of boards and save it to a pdf file (for printing)
 
 
