@@ -2,6 +2,7 @@ import java.lang.Math;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.*;
 
 class Sudoku{
     public static void main(String[] args) {
@@ -9,13 +10,16 @@ class Sudoku{
         menu();
         /*
         // For board generation fixes
-        int level = 4;
+        int level = 3;
         byte[][] board = Board.generate2DArrays(level);
-        byte[][] empyForDrawFun = new byte[level*level][level*level];
-        Board.draw(board,empyForDrawFun);
+        byte[][] empyForDrawFunc = new byte[level*level][level*level];
+        Board.draw(board,empyForDrawFunc);
         
         board = Board.solveSudoku(board);
-        Board.draw(board, empyForDrawFun);        
+        Board.writeTxt(board, "txtout");
+        Board.writeTxt(board, "txtout");
+        Board.writeTxt(board, "txtout");
+        Board.draw(board, empyForDrawFunc);        
         */
     }
 
@@ -28,7 +32,7 @@ class Sudoku{
         int level = 0;
         boolean userMadeChoice = false;
         while (!userMadeChoice){
-            System.out.println("Choose what level you want to play.\n");
+            System.out.println("Choose what grid size you want to play.\n");
             System.out.println("'1' for 1*1 board");
             System.out.println("'2' for 4*4 board");
             System.out.println("'3' for 9*9 board");
@@ -101,6 +105,126 @@ class Sudoku{
         menu();
     }
 
+    // Menu for other options
+    //
+    public static void otherOptionsMenu() {
+        boolean userMadeChoice = false;
+        
+        while (!userMadeChoice){
+            System.out.println("Choose what mode you want to play.\n");
+            System.out.println("'1' for generating a txt file");
+            System.out.println("'2' for generating a pdf file");
+            System.out.println("'0' for main menu");
+            String userChoice1 = inputString("Enter your choice below: ");
+            System.out.println();
+            switch (userChoice1){
+                case "1":
+                    String fileName = inputString("Name your txt file: ");
+                    System.out.println();               
+                    int level = 0;
+                    boolean userMadeChoice2 = false;
+
+                    while (!userMadeChoice2){
+                        System.out.println("Choose what grid size you want to play.\n");
+                        System.out.println("'1' for 1*1 board");
+                        System.out.println("'2' for 4*4 board");
+                        System.out.println("'3' for 9*9 board");
+                        System.out.println("'n' for (n^2)*(n^2) board");
+                        String userChoice = inputString("Enter your choice below: ");
+                        System.out.println();
+                        switch (userChoice){
+                            case "1":
+                                level = 1;
+                                userMadeChoice2 = true;
+                                break;
+                            case "2":
+                                level = 2;
+                                userMadeChoice2 = true;
+                                break;
+                            case "3":
+                                level = 3;
+                                userMadeChoice2 = true;
+                                break;
+                            case "4":
+                                level = 4;
+                                userMadeChoice2 = true;
+                                break;
+                            default:
+                                System.out.println("Sorry, you have either entered invalid option or the level you are trying to access in still in development.");
+                                System.out.println("Please try again. \n");
+                        }
+                    } 
+                
+                    int difficulty = 0;
+                    userMadeChoice2 = false;
+                    while (!userMadeChoice2){
+                        System.out.println("Choose what difficulty you want to play.\n");
+                        System.out.println("'1' There are barely any numbers missing.");
+                        System.out.println("'2' There are some numbers missing.");
+                        System.out.println("'3' Now we are talking!");
+                        String userChoice = inputString("Enter your choice below: ");
+                        System.out.println();
+                        switch (userChoice){
+                            case "1":
+                                difficulty = 1;
+                                userMadeChoice2 = true;
+                                break;
+                            case "2":
+                                difficulty = 2;
+                                userMadeChoice2 = true;
+                                break;
+                            case "3":
+                                difficulty = 3;
+                                userMadeChoice2 = true;
+                                break;
+                            default:
+                                System.out.println("Sorry, you have entered an invalid option.");
+                                System.out.println("Please try again. \n");
+                        }
+                    }
+            
+                    try{
+                        // Clear the chosen txt file
+                        File tempFile = new File(fileName+".txt");
+                        FileWriter tempFileWriter = new FileWriter(tempFile, false);
+                        PrintWriter tempPrintWriter = new PrintWriter(tempFileWriter);
+                        tempPrintWriter.close();
+                    
+                        int numOfBoards = Integer.parseInt(inputString("How many games do you want to generate: "));
+                        
+                        for(int i = 1; i <= numOfBoards; i++){
+                            // Generate a new board each time
+                            byte[][] board = Board.generate2DArrays(level);
+                            board = Board.solveSudoku(board);
+                            board = Board.cratePlayableSudoku(board, difficulty);
+                            Board.writeTxt(board, fileName);
+                        }
+
+                        System.out.println();
+                        System.out.println(numOfBoards+ " games were succesfully writen to "+fileName+".txt\n");
+                    } catch (IOException e){
+                        // Do nothing
+                    }
+                    // generating txt file
+                    //Board.writeTxt(board, fileName);
+
+                    userMadeChoice2 = true;
+                    break;
+                case "2":
+                    System.out.println("Ops... It is still in development.\n");
+                    userMadeChoice2 = true;
+                    break;
+                case "0":
+                    System.out.println();
+                    userMadeChoice2 = true;
+                    menu();
+                    break;
+                default:
+                    System.out.println("Ops... I didn't get that. Let's try again.\n");
+            }
+        }
+    }
+
     // Print a cool Sudoku logo
     //
     public static void printLogo() {
@@ -142,7 +266,8 @@ class Sudoku{
                     userMadeChoice = true;
                     break;
                 case "2":
-                    System.out.println("Sorry, that is still in development...\n");
+                    otherOptionsMenu();
+                    userMadeChoice = true;
                     break;
                 case "0":
                     System.out.println("Good bye! Till next time!\n");
@@ -250,6 +375,74 @@ class Board{
         System.out.println(bottomBorder);
     }
 
+    // Draw a board of any square dimention
+    //
+    public static void writeTxt(byte[][] board, String fileName) {
+        int dimention = board.length;
+        int level = (int) Math.sqrt(board.length);
+        int digits = countDigits(dimention);
+        byte[] currentCoordinate = new byte[2];
+        String empty = createRepeatedUnit(digits, " ");
+        
+        try{
+            // File related variables
+            File file = new File(fileName+".txt");
+            FileWriter fileWriter = new FileWriter(file, true);
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+
+            printWriter.println("dimention: "+dimention);
+            printWriter.println("level: "+level);
+        
+            // Generate borders
+            String topBorder = generateTopBorder(level, digits);
+            String bottomBorder = generateBottomBorder(level, digits);
+            String seperatorBorder = generateSeperatorBorder(level, digits);
+
+            printWriter.println(topBorder);
+            for (int i = 0; i <= dimention-1; i++){
+                printWriter.print((i+1) + createRepeatedUnit( (digits-countDigits(i+1)) , " ") + " ┃ ");
+                for (int z = 0; z <= dimention-1; z++){
+                
+                    currentCoordinate[0] = (byte) i;
+                    currentCoordinate[1] = (byte) z;
+                
+                    if (z == dimention-1){
+                        // If the byte is 0 print " "
+                        if (board[i][z] != 0)
+                            printWriter.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        else
+                            printWriter.print(empty);
+                        printWriter.print(" ┃\n");
+                    }
+                    else if (z % level == 0 & z != 0){
+                        printWriter.print("┃ ");
+                        // If the byte is 0 print " "
+                        if (board[i][z] != 0)
+                            printWriter.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        else
+                            printWriter.print(empty);
+                        printWriter.print(" ");
+                    } else {
+                        // If the byte is 0 print " "
+                        if (board[i][z] != 0)
+                            printWriter.print(board[i][z] + createRepeatedUnit( (digits-countDigits(board[i][z])) , " "));
+                        else
+                            printWriter.print(empty);
+                        printWriter.print(" ");
+                    }
+                }
+                if (((i+1) % level == 0) & (i != 0) & (i != dimention-1)){
+                    printWriter.print(seperatorBorder+"\n");
+                }
+            }        
+            printWriter.println(bottomBorder);
+
+            printWriter.close();
+        } catch (IOException e){
+            //do nothing
+        }
+    }
+
     // Randomly generate values for a board until one that is valid is optained
     //
     public static byte[][] solveSudoku(byte[][] board) {
@@ -276,7 +469,7 @@ class Board{
     public static byte[][] cratePlayableSudoku(byte[][] board, int difficulty) {
         int dimention = board.length;
         int numbersToDelete = (int) Math.ceil( (dimention*dimention) * (difficulty*0.25) );
-        System.out.println("Number of empty spaces: "+(dimention*dimention - numbersToDelete));
+        //System.out.println("Number of empty spaces: "+(dimention*dimention - numbersToDelete));
         byte[] coordinatesX = new byte[numbersToDelete];
         byte[] coordinatesY = new byte[numbersToDelete];
 
@@ -550,7 +743,7 @@ class Board{
     // column and row indexing the top left corner of the box
     //
     public static byte[] getBoxAsArray(byte[][] board, int row, int column){
-        int level = (int) Math.sqrt(board.length);
+        int level = (int) Math.sqrt(board.length);  
         byte[] byteArray = new byte[board.length];
         int index = 0;
         
