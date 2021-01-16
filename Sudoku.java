@@ -96,6 +96,8 @@ class Sudoku{
         byte[][] fixedCoordinates = Board.getNonZerosCoordinates(board);
         Board.draw(board, fixedCoordinates);
 
+        System.out.println("For clearing a space enter 0.");
+
         while(!isGameFinished){
             Board.updateBoard(board, fixedCoordinates);
             isGameFinished = !Board.isZeroIn2DArray(board);
@@ -291,6 +293,30 @@ class Sudoku{
         return userInput;
 
     }// END inputString
+
+    // Get int from user that is in the interval [minValue, maxValue]
+    // after printing a message
+    //
+    public static int inputInt(String message, int minValue, int maxValue) {
+        System.out.println(message);
+        Scanner scanner = new Scanner(System.in);
+        int userNumber = 0;
+
+        // Make sure it is an int
+        try {
+            userNumber = Integer.parseInt( scanner.nextLine() );
+        } catch (Exception e) {
+            System.out.println("Invalid. Please enter a number.");
+            return inputInt(message, minValue, maxValue);
+        }
+
+        if ( (minValue <= userNumber) && (userNumber <= maxValue) ){
+            return userNumber;
+        }else{
+            System.out.println("The number should be between "+ minValue +" and "+ maxValue +".");
+            return inputInt(message, minValue, maxValue);
+        }
+    }
 }
 
 class Board{
@@ -528,11 +554,13 @@ class Board{
     // Ask the user to change the values and return updated the board
     // add byte[] unchengableX, byte[] unchengableY to make sure that generated numbers are not changed
     public static byte[][] updateBoard(byte[][] board, byte[][] fixedCoordinates) {
-        int level = (int) Math.sqrt(board.length);
+        int dimention = board.length;
+        int level = (int) Math.sqrt(dimention);
 
+        // Choose coordinates
         System.out.println("Enter where you want to insert a number.");
-        int coordinateX = Integer.parseInt(Sudoku.inputString("Row: "));
-        int coordinateY = Integer.parseInt(Sudoku.inputString("Column: "));
+        int coordinateX = Sudoku.inputInt("Row: ", 1, dimention);
+        int coordinateY = Sudoku.inputInt("Column: ", 1, dimention);
 
         // Checking if the user has chosen a not fixed coordinate
         byte[] userCoordinates = new byte[2];
@@ -543,24 +571,23 @@ class Board{
             return Board.updateBoard(board, fixedCoordinates);
         }
 
-
-        // implement input verification
-        // no strings
-        byte userInsertion = (byte) Integer.parseInt(Sudoku.inputString("What number do you want to insert at ("+coordinateX+","+coordinateY+"): "));
+        // Choose what to insert
+        byte userInsertion = (byte) Sudoku.inputInt("What number do you want to insert at ("+coordinateX+","+coordinateY+"): ", 0, dimention);
         System.out.println();
 
-        // Checking if no such number in row, column and box
-        if ( isInArray(board[coordinateX-1], userInsertion)){
-            System.out.println("There is a "+userInsertion+" already in the same row.\n");
-            return Board.updateBoard(board, fixedCoordinates);
-        } else if ( isInArray(getColumnAsArray(board, coordinateY-1), userInsertion)){
-            System.out.println("There is a "+userInsertion+" already in the same column.\n");
-            return Board.updateBoard(board, fixedCoordinates);
-        } else if ( isInArray(getBoxAsArray(board, coordinateX - 1 - ((coordinateX-1) % level), coordinateY - 1 - ((coordinateY-1) % level)), userInsertion)){
-            System.out.println("There is a "+userInsertion+" already in the same box.\n");
-            return Board.updateBoard(board, fixedCoordinates);
+        if(userInsertion != 0){
+            // Checking if no such number in row, column and box
+            if ( isInArray(board[coordinateX-1], userInsertion)){
+                System.out.println("There is a "+userInsertion+" already in the same row.\n");
+                return Board.updateBoard(board, fixedCoordinates);
+            } else if ( isInArray(getColumnAsArray(board, coordinateY-1), userInsertion)){
+                System.out.println("There is a "+userInsertion+" already in the same column.\n");
+                return Board.updateBoard(board, fixedCoordinates);
+            } else if ( isInArray(getBoxAsArray(board, coordinateX - 1 - ((coordinateX-1) % level), coordinateY - 1 - ((coordinateY-1) % level)), userInsertion)){
+                System.out.println("There is a "+userInsertion+" already in the same box.\n");
+                return Board.updateBoard(board, fixedCoordinates);
+            }
         }
-
 
 
         board[coordinateX-1][coordinateY-1] = userInsertion;       
