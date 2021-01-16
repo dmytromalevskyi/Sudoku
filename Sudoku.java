@@ -121,7 +121,7 @@ class Sudoku{
             System.out.println();
             switch (userChoice1){
                 case "1":
-                    String fileName = inputString("Name your txt file: ");
+                    String fileName = inputString("Name your txt file (.txt will be added automatically): ");
                     System.out.println();               
                     int level = 0;
                     boolean userMadeChoice2 = false;
@@ -192,7 +192,7 @@ class Sudoku{
                         PrintWriter tempPrintWriter = new PrintWriter(tempFileWriter);
                         tempPrintWriter.close();
                     
-                        int numOfBoards = Integer.parseInt(inputString("How many games do you want to generate: "));
+                        int numOfBoards = inputInt("How many games do you want to generate: ", 1, 1000);
                         
                         for(int i = 1; i <= numOfBoards; i++){
                             // Generate a new board each time
