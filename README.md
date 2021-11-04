@@ -3,23 +3,21 @@ Sudoku
 The aim is to create sudoku where a user will have a choice to generate any board size (4x4, 16x16, (n^2)x(n^2)) and difficulty (number of empty squares).
 
 
-Features
--------------------------
-* Solve randomly generated boards (4x4, 9x9, 16x16)
-* Be able to choose difficulty (1 - 25% of numbers are missing, 2 - 50% and 3 - 75%)
-* Generate a number of boards and save it to a txt file
+# Features
+> * Solve randomly generated boards (4x4, 9x9, 16x16)
+> * Be able to choose difficulty (1 - 25% of numbers are missing, 2 - 50% and 3 - 75%)
+> * Generate a number of boards and save it to a txt file
 
 
-In development
--------------------------
-* Generate boards of any size ((n^2)x(n^2) for 1 <= n <= 11)
-* Generate a number of boards and save it to a pdf file (for printing)
+# In development
+> * Generate boards of any size ((n^2)x(n^2) for 1 <= n <= 11)
+> * Generate a number of boards and save it to a pdf file (for printing)
 
 
 
 Examples of boards
 ------------------
-### 9x9 difficulty - 3
+#### 9x9 difficulty - 3
 ```java
     1 2 3   4 5 6   7 8 9
   ┏━━━━━━━┳━━━━━━━┳━━━━━━━┓
@@ -36,7 +34,7 @@ Examples of boards
 9 ┃       ┃   5   ┃       ┃
   ┗━━━━━━━┻━━━━━━━┻━━━━━━━┛
   ```
-### 16x16 difficulty - 3
+#### 16x16 difficulty - 3
 ```java
      1  2  3  4    5  6  7  8    9  10 11 12   13 14 15 16   
    ┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
@@ -62,7 +60,7 @@ Examples of boards
    ┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━┻━━━━━━━━━━━━━┻━━━━━━━━━━━━━┛
   ```
 
-### 4x4 difficulty - 2
+#### 4x4 difficulty - 2
 ```java
     1 2   3 4
   ┏━━━━━┳━━━━━┓
